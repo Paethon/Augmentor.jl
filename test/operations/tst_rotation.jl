@@ -9,9 +9,19 @@
     @testset "eager" begin
         @test_throws MethodError Augmentor.applyeager(Rotate90(), nothing)
         @test Augmentor.supports_eager(Rotate90) === true
-        for img in (rect, OffsetArray(rect, -2, -1), view(rect, IdentityRange(1:2), IdentityRange(1:3)))
-            @test @inferred(Augmentor.applyeager(Rotate90(), img)) == rotl90(rect)
-            @test typeof(Augmentor.applyeager(Rotate90(), img)) <: Array
+        imgs = [
+            (rect),
+            (view(rect, :, :)),
+            (Augmentor.prepareaffine(rect)),
+            (OffsetArray(rect, -2, -1)),
+            (view(rect, IdentityRange(1:2), IdentityRange(1:3))),
+        ]
+        @testset "single image" begin
+            for (img_in) in imgs
+                res = @inferred(Augmentor.applyeager(Rotate90(), img_in))
+                @test res == rotl90(rect)
+                @test typeof(res) <: Array
+            end
         end
     end
     @testset "affine" begin
@@ -78,9 +88,19 @@ end
     @testset "eager" begin
         @test_throws MethodError Augmentor.applyeager(Rotate180(), nothing)
         @test Augmentor.supports_eager(Rotate180) === true
-        for img in (rect, OffsetArray(rect, -2, -1), view(rect, IdentityRange(1:2), IdentityRange(1:3)))
-            @test @inferred(Augmentor.applyeager(Rotate180(), img)) == rot180(rect)
-            @test typeof(Augmentor.applyeager(Rotate180(), img)) <: Array
+        imgs = [
+            (rect),
+            (view(rect, :, :)),
+            (Augmentor.prepareaffine(rect)),
+            (OffsetArray(rect, -2, -1)),
+            (view(rect, IdentityRange(1:2), IdentityRange(1:3))),
+        ]
+        @testset "single image" begin
+            for (img_in) in imgs
+                res = @inferred(Augmentor.applyeager(Rotate180(), img_in))
+                @test res == rot180(rect)
+                @test typeof(res) <: Array
+            end
         end
     end
     @testset "affine" begin
@@ -145,9 +165,19 @@ end
     @testset "eager" begin
         @test_throws MethodError Augmentor.applyeager(Rotate270(), nothing)
         @test Augmentor.supports_eager(Rotate270) === true
-        for img in (rect, OffsetArray(rect, -2, -1), view(rect, IdentityRange(1:2), IdentityRange(1:3)))
-            @test @inferred(Augmentor.applyeager(Rotate270(), img)) == rotr90(rect)
-            @test typeof(Augmentor.applyeager(Rotate270(), img)) <: Array
+        imgs = [
+            (rect),
+            (view(rect, :, :)),
+            (Augmentor.prepareaffine(rect)),
+            (OffsetArray(rect, -2, -1)),
+            (view(rect, IdentityRange(1:2), IdentityRange(1:3))),
+        ]
+        @testset "single image" begin
+            for (img_in) in imgs
+                res = @inferred(Augmentor.applyeager(Rotate270(), img_in))
+                @test res == rotr90(rect)
+                @test typeof(res) <: Array
+            end
         end
     end
     @testset "affine" begin
@@ -231,12 +261,26 @@ end
     @testset "eager" begin
         @test_throws MethodError Augmentor.applyeager(Rotate(10), nothing)
         @test Augmentor.supports_eager(Rotate) === false
-        # TODO: more tests
-        for img in (square, OffsetArray(square, 0, 0), view(square, IdentityRange(1:3), IdentityRange(1:3)))
-            @test @inferred(Augmentor.applyeager(Rotate(90), img)) == rotl90(square)
-            @test typeof(Augmentor.applyeager(Rotate(90), img)) <: Array
-            @test @inferred(Augmentor.applyeager(Rotate(-90), img)) == rotr90(square)
-            @test typeof(Augmentor.applyeager(Rotate(-90), img)) <: Array
+        res1 = OffsetArray(rotl90(square), 0, 0)
+        res2 = OffsetArray(rotl90(square), -1, -1)
+        res3 = OffsetArray(rotr90(square), 0, 0)
+        res4 = OffsetArray(rotr90(square), -1, -1)
+        imgs = [
+            (square, res1, res3),
+            (view(square, :, :), res1, res3),
+            (Augmentor.prepareaffine(square), res1, res3),
+            (OffsetArray(square, -1, -1), res2, res4),
+            (view(square, IdentityRange(1:3), IdentityRange(1:3)), res1, res3),
+        ]
+        @testset "single image" begin
+            for (img_in, img_out1, img_out2) in imgs
+                res = @inferred(Augmentor.applyeager(Rotate(90), img_in))
+                @test res == img_out1
+                @test typeof(res) == typeof(img_out1)
+                res = @inferred(Augmentor.applyeager(Rotate(-90), img_in))
+                @test res == img_out2
+                @test typeof(res) == typeof(img_out2)
+            end
         end
     end
     @testset "affine" begin
